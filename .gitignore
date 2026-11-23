@@ -1,0 +1,7 @@
+# Material de clase (no se sube)
+contexto/
+
+# Sistema y editor
+.DS_Store
+Thumbs.db
+.vscode/
