@@ -287,3 +287,23 @@ tbody tr:hover {
     font-size: 1.4rem;
   }
 }
+
+/* =========================================================
+   Login
+   ========================================================= */
+.contenedor-login {
+  min-height: calc(100vh - 140px);
+  place-items: center;
+}
+
+.tarjeta-login {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 8px;
+}
+
+.formulario-login {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
