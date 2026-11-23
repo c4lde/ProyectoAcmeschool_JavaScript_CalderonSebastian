@@ -1,0 +1,79 @@
+{
+  "usuarios": [
+    {
+      "identificacion": "1000000001",
+      "nombre": "Administrador Acme",
+      "email": "admin@acme.edu.co",
+      "telefono": "3001234567",
+      "cargo": "Administrativo",
+      "contrasena": "Admin123"
+    },
+    {
+      "identificacion": "1000000002",
+      "nombre": "Laura Gómez",
+      "email": "laura.gomez@acme.edu.co",
+      "telefono": "3109876543",
+      "cargo": "Docente",
+      "contrasena": "Docente123"
+    }
+  ],
+  "examenes": [
+    {
+      "codigo": "JS-001",
+      "titulo": "Fundamentos de JavaScript",
+      "tiempo": 5,
+      "porcentaje": 60,
+      "descripcion": "Examen corto sobre variables, tipos de datos y operadores.",
+      "preguntas": [
+        {
+          "enunciado": "¿Qué palabra clave declara una variable que no se puede reasignar?",
+          "respuestas": [
+            { "descripcion": "var", "correcta": false },
+            { "descripcion": "let", "correcta": false },
+            { "descripcion": "const", "correcta": true }
+          ]
+        },
+        {
+          "enunciado": "¿Qué devuelve typeof []?",
+          "respuestas": [
+            { "descripcion": "\"array\"", "correcta": false },
+            { "descripcion": "\"object\"", "correcta": true },
+            { "descripcion": "\"list\"", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Cuál operador compara valor y tipo?",
+          "respuestas": [
+            { "descripcion": "==", "correcta": false },
+            { "descripcion": "===", "correcta": true },
+            { "descripcion": "=", "correcta": false }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo": "DOM-001",
+      "titulo": "Manipulación del DOM",
+      "tiempo": 10,
+      "porcentaje": 70,
+      "descripcion": "Selección de elementos, eventos y creación de nodos.",
+      "preguntas": [
+        {
+          "enunciado": "¿Qué método crea un elemento nuevo?",
+          "respuestas": [
+            { "descripcion": "document.createElement()", "correcta": true },
+            { "descripcion": "document.newElement()", "correcta": false },
+            { "descripcion": "document.querySelector()", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Qué propiedad inserta texto de forma segura?",
+          "respuestas": [
+            { "descripcion": "innerHTML", "correcta": false },
+            { "descripcion": "textContent", "correcta": true }
+          ]
+        }
+      ]
+    }
+  ]
+}
