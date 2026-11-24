@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión · Acme School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/script.js" defer></script>
+  <script src="js/componentes/acme-menu.js" defer></script>
+  <script src="js/componentes/formulario-login.js" defer></script>
+  <script src="js/login.js" defer></script>
+</head>
+<body>
+  <acme-menu activo="login"></acme-menu>
+
+  <main class="entrada">
+    <section class="bienvenida">
+      <h1>Plataforma de exámenes <span>Acme School</span></h1>
+      <p class="subtitulo">Administra usuarios y exámenes desde un solo lugar.</p>
+
+      <div class="panel acceso-publico">
+        <h2>¿Vas a presentar un examen?</h2>
+        <p>No necesitas cuenta. Elige el examen y responde con tu identificación y nombre.</p>
+        <a href="html/presentar.html" class="btn btn-acento">Ver exámenes disponibles</a>
+      </div>
+    </section>
+
+    <formulario-login id="formularioLogin"></formulario-login>
+  </main>
+</body>
+</html>
