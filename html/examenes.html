@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de exámenes · Acme School</title>
+  <link rel="icon" href="../imagenes/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/script.js" defer></script>
+  <script src="../js/componentes/acme-menu.js" defer></script>
+  <script src="../js/componentes/editor-pregunta.js" defer></script>
+  <script src="../js/componentes/formulario-examen.js" defer></script>
+  <script src="../js/componentes/tabla-examenes.js" defer></script>
+  <script src="../js/examenes.js" defer></script>
+</head>
+<body>
+  <acme-menu activo="examenes"></acme-menu>
+
+  <main>
+    <section class="panel">
+      <h1>Gestión de exámenes</h1>
+      <p class="subtitulo">Crea, actualiza y elimina exámenes con sus preguntas y respuestas.</p>
+    </section>
+
+    <formulario-examen id="formularioExamen"></formulario-examen>
+    <tabla-examenes id="tablaExamenes"></tabla-examenes>
+  </main>
+</body>
+</html>
