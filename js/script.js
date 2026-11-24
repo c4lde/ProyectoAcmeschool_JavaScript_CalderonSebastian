@@ -1,20 +1,32 @@
 // =========================================================
 // Acme School · script.js (código común)
-// Se carga en TODAS las páginas antes del script de cada página.
+// Se carga en TODAS las páginas antes que los componentes
+// y que el script de cada página.
 // =========================================================
 
 // Claves de localStorage y sessionStorage
 const CLAVE_USUARIOS = "acme:usuarios";     // [{ identificacion, nombre, email, telefono, cargo, contrasena }]
 const CLAVE_EXAMENES = "acme:examenes";     // [{ codigo, titulo, tiempo, porcentaje, descripcion, preguntas }]
-const CLAVE_RESULTADOS = "acme:resultados"; // [{ codigoExamen, identificacion, nombre, aciertos, total, porcentaje, aprobado, fecha }]
+const CLAVE_RESULTADOS = "acme:resultados"; // [{ codigoExamen, identificacion, nombre, respuestas, porcentaje, aprobado, fecha }]
 const CLAVE_SESION = "acme:sesion";         // { identificacion, nombre, email, cargo } (sessionStorage)
 
-// Las páginas de la carpeta html/ deben subir un nivel para llegar a json/ y a index.html
+// Las páginas de la carpeta html/ deben subir un nivel para llegar a la raíz del proyecto
 const RUTA_BASE = location.pathname.includes("/html/") ? "../" : "";
+
+// Usuario que se crea si no se puede leer el JSON inicial (por ejemplo, al abrir el
+// proyecto con doble clic en lugar de Live Server). Así el login siempre funciona.
+const ADMIN_POR_DEFECTO = {
+  identificacion: "1000000001",
+  nombre: "Administrador Acme",
+  email: "admin@acme.edu.co",
+  telefono: "3001234567",
+  cargo: "Administrativo",
+  contrasena: "Admin123"
+};
 
 // ---------- localStorage ----------
 
-// Lee un valor de localStorage y lo convierte de JSON. Si no existe, devuelve el valor por defecto.
+// Lee un valor de localStorage y lo convierte de JSON. Si no existe o está dañado, devuelve el valor por defecto.
 function leerLocal(clave, porDefecto) {
   const texto = localStorage.getItem(clave);
   if (texto === null) return porDefecto;
@@ -42,29 +54,35 @@ async function cargarJSON(nombreArchivo) {
   return respuesta.json();
 }
 
-// La primera vez que se abre la aplicación, copia los datos de ejemplo a localStorage.
+// La primera vez que se abre la aplicación copia los datos de ejemplo a localStorage.
 // Después siempre se trabaja con lo que haya en localStorage.
 async function inicializarDatos() {
-  if (localStorage.getItem(CLAVE_USUARIOS) !== null && localStorage.getItem(CLAVE_EXAMENES) !== null) {
-    return;
-  }
+  const faltanUsuarios = !Array.isArray(leerLocal(CLAVE_USUARIOS, null));
+  const faltanExamenes = !Array.isArray(leerLocal(CLAVE_EXAMENES, null));
+  if (!faltanUsuarios && !faltanExamenes) return;
+
   try {
     const datos = await cargarJSON("datos-iniciales.json");
-    if (localStorage.getItem(CLAVE_USUARIOS) === null) guardarLocal(CLAVE_USUARIOS, datos.usuarios);
-    if (localStorage.getItem(CLAVE_EXAMENES) === null) guardarLocal(CLAVE_EXAMENES, datos.examenes);
-    console.log("Datos iniciales cargados");
+    if (faltanUsuarios) guardarLocal(CLAVE_USUARIOS, datos.usuarios);
+    if (faltanExamenes) guardarLocal(CLAVE_EXAMENES, datos.examenes);
+    console.log("Datos iniciales cargados desde json/datos-iniciales.json");
   } catch (error) {
-    console.error(error.message);
-    // Sin el JSON la aplicación igual funciona, pero empieza vacía
-    if (localStorage.getItem(CLAVE_USUARIOS) === null) guardarLocal(CLAVE_USUARIOS, []);
-    if (localStorage.getItem(CLAVE_EXAMENES) === null) guardarLocal(CLAVE_EXAMENES, []);
+    console.warn(`${error.message}. Se crea solo el administrador por defecto.`);
+    if (faltanUsuarios) guardarLocal(CLAVE_USUARIOS, [ADMIN_POR_DEFECTO]);
+    if (faltanExamenes) guardarLocal(CLAVE_EXAMENES, []);
   }
 }
 
-// ---------- Usuarios y exámenes ----------
+// ---------- Usuarios, exámenes y resultados ----------
+// Si la clave no tiene un arreglo (no existe o está dañada) se devuelve un arreglo vacío.
+
+function leerLista(clave) {
+  const lista = leerLocal(clave, []);
+  return Array.isArray(lista) ? lista : [];
+}
 
 function obtenerUsuarios() {
-  return leerLocal(CLAVE_USUARIOS, []);
+  return leerLista(CLAVE_USUARIOS);
 }
 
 function guardarUsuarios(usuarios) {
@@ -72,11 +90,19 @@ function guardarUsuarios(usuarios) {
 }
 
 function obtenerExamenes() {
-  return leerLocal(CLAVE_EXAMENES, []);
+  return leerLista(CLAVE_EXAMENES);
 }
 
 function guardarExamenes(examenes) {
   guardarLocal(CLAVE_EXAMENES, examenes);
+}
+
+function obtenerResultados() {
+  return leerLista(CLAVE_RESULTADOS);
+}
+
+function guardarResultados(resultados) {
+  guardarLocal(CLAVE_RESULTADOS, resultados);
 }
 
 // ---------- Sesión (sessionStorage) ----------
@@ -84,7 +110,13 @@ function guardarExamenes(examenes) {
 
 function obtenerSesion() {
   const texto = sessionStorage.getItem(CLAVE_SESION);
-  return texto === null ? null : JSON.parse(texto);
+  if (texto === null) return null;
+  try {
+    return JSON.parse(texto);
+  } catch (error) {
+    sessionStorage.removeItem(CLAVE_SESION);
+    return null;
+  }
 }
 
 function iniciarSesion(usuario) {
@@ -93,15 +125,17 @@ function iniciarSesion(usuario) {
   sessionStorage.setItem(CLAVE_SESION, JSON.stringify({ identificacion, nombre, email, cargo }));
 }
 
+// El login es la entrada de la aplicación: index.html
 function cerrarSesion() {
   sessionStorage.removeItem(CLAVE_SESION);
-  location.href = `${RUTA_BASE}html/login.html`;
+  location.href = `${RUTA_BASE}index.html`;
 }
 
-// Las páginas privadas llaman esta función al inicio: sin sesión, se va al login.
+// Las páginas privadas llaman esta función al inicio: sin sesión, se vuelve al login.
+// replace() evita que con el botón "Atrás" se regrese a la página privada.
 function protegerPagina() {
   if (obtenerSesion() === null) {
-    location.replace(`${RUTA_BASE}html/login.html`);
+    location.replace(`${RUTA_BASE}index.html`);
     return false;
   }
   return true;
@@ -109,14 +143,32 @@ function protegerPagina() {
 
 // ---------- Utilidades ----------
 
-// Muestra un mensaje con la clase exito o fallo
+// Validaciones que se repiten en varios formularios
+const EXPRESION_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EXPRESION_TELEFONO = /^\d{7,10}$/;
+const EXPRESION_IDENTIFICACION = /^\d{6,12}$/;
+
+// Muestra un mensaje con la clase exito o fallo (o lo limpia si el texto es "")
 function mostrarMensaje(elemento, texto, tipo) {
   elemento.textContent = texto;
   elemento.classList.remove("exito", "fallo");
   if (tipo) elemento.classList.add(tipo);
 }
 
-// Validaciones que se repiten en varios formularios
-const EXPRESION_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const EXPRESION_TELEFONO = /^\d{7,10}$/;
-const EXPRESION_IDENTIFICACION = /^\d{6,12}$/;
+// Crea un botón con sus clases y su data-accion (se usa en las tablas)
+function crearBoton(texto, clases, accion) {
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.className = clases;
+  boton.dataset.accion = accion;
+  boton.textContent = texto;
+  return boton;
+}
+
+// Crea una celda <td>. data-etiqueta es el título que se ve en celulares (tabla en modo tarjeta)
+function crearCelda(texto, etiqueta) {
+  const celda = document.createElement("td");
+  celda.textContent = texto;
+  celda.dataset.etiqueta = etiqueta;
+  return celda;
+}
