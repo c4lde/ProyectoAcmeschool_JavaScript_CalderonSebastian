@@ -17,7 +17,8 @@ plantillaMenu.innerHTML = `
       align-items: center;
       gap: 8px 20px;
       padding: 14px 24px;
-      background: var(--color-primario);
+      background: var(--color-menu);
+      border-bottom: 2px solid var(--color-primario);
       color: #fff;
       font-family: var(--fuente);
     }
@@ -28,7 +29,7 @@ plantillaMenu.innerHTML = `
       opacity: 1;
     }
     .marca span {
-      color: var(--color-acento);
+      color: var(--color-primario);
     }
     a {
       color: #fff;
@@ -41,7 +42,7 @@ plantillaMenu.innerHTML = `
     a:hover,
     a.activo {
       opacity: 1;
-      border-color: var(--color-acento);
+      border-color: var(--color-primario);
     }
     .marca:hover {
       border-color: transparent;
@@ -56,8 +57,8 @@ plantillaMenu.innerHTML = `
     }
     button {
       font: inherit;
-      background: var(--color-acento);
-      color: var(--color-texto);
+      background: var(--color-primario);
+      color: var(--color-texto-sobre-primario);
       border: none;
       border-radius: 8px;
       padding: 6px 14px;

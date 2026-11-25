@@ -5,25 +5,34 @@
    ========================================================= */
 
 /* ---------- Variables (colores y medidas de la marca) ---------- */
+/* Modo oscuro con la paleta verde lima + azul marino */
 :root {
-  --color-primario: #2b3a8c;
-  --color-primario-oscuro: #1d2866;
-  --color-primario-claro: #e6e9f7;
-  --color-acento: #f2a541;
-  --color-acento-claro: #fdf1df;
-  --color-exito: #2e9e6a;
-  --color-exito-claro: #e3f5ec;
-  --color-peligro: #d64545;
-  --color-peligro-claro: #fbe7e7;
-  --color-fondo: #f4f6fb;
-  --color-superficie: #ffffff;
-  --color-texto: #1e2333;
-  --color-texto-suave: #5f6578;
-  --color-borde: #d9dce8;
+  /* Le dice al navegador que use controles nativos oscuros (select, number, scrollbar) */
+  color-scheme: dark;
+
+  --color-primario: #98ca3f;          /* verde lima: botones principales y enlaces */
+  --color-primario-oscuro: #7fae2e;   /* hover del botón principal */
+  --color-primario-claro: #1c2d4f;    /* fondos suaves: encabezado de tabla, botón secundario */
+  --color-acento: #33b1ff;            /* celeste: acciones secundarias y foco */
+  --color-acento-claro: #102f4a;
+  --color-exito: #98ca3f;
+  --color-exito-claro: #1f3322;
+  --color-peligro: #ff6b6b;
+  --color-peligro-claro: #3a1d27;
+
+  --color-fondo: #0b1220;             /* fondo de la página */
+  --color-superficie: #121f3d;        /* tarjetas y paneles */
+  --color-campo: #0e1830;             /* fondo de inputs */
+  --color-menu: #0f1a33;              /* barra de navegación */
+  --color-titulo: #ffffff;
+  --color-texto: #e3e8f2;
+  --color-texto-suave: #98a5bd;
+  --color-texto-sobre-primario: #0b1220; /* texto oscuro sobre el verde y el celeste */
+  --color-borde: #26365c;
 
   --fuente: "Poppins", system-ui, sans-serif;
   --radio: 10px;
-  --sombra: 0 4px 14px rgba(30, 35, 51, 0.08);
+  --sombra: 0 6px 20px rgba(0, 0, 0, 0.35);
   --transicion: 0.2s ease;
 }
 
@@ -52,17 +61,17 @@ main {
 
 h1 {
   font-size: 1.8rem;
-  color: var(--color-primario-oscuro);
+  color: var(--color-titulo);
 }
 
 h2 {
   font-size: 1.25rem;
-  color: var(--color-primario-oscuro);
+  color: var(--color-titulo);
 }
 
 h3 {
   font-size: 1.05rem;
-  color: var(--color-primario-oscuro);
+  color: var(--color-titulo);
 }
 
 a {
@@ -78,6 +87,7 @@ a {
 /* ---------- Paneles ---------- */
 .panel {
   background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
   border-radius: var(--radio);
   box-shadow: var(--sombra);
   padding: 24px;
@@ -123,7 +133,7 @@ a {
 
 .btn-primario {
   background: var(--color-primario);
-  color: #fff;
+  color: var(--color-texto-sobre-primario);
 }
 
 .btn-primario:hover {
@@ -132,17 +142,17 @@ a {
 
 .btn-secundario {
   background: var(--color-primario-claro);
-  color: var(--color-primario-oscuro);
+  color: var(--color-titulo);
 }
 
 .btn-acento {
   background: var(--color-acento);
-  color: var(--color-texto);
+  color: var(--color-texto-sobre-primario);
 }
 
 .btn-peligro {
   background: var(--color-peligro);
-  color: #fff;
+  color: var(--color-texto-sobre-primario);
 }
 
 .btn-pequeno {
@@ -180,7 +190,7 @@ textarea {
   padding: 10px 12px;
   border: 1px solid var(--color-borde);
   border-radius: var(--radio);
-  background: var(--color-superficie);
+  background: var(--color-campo);
   color: var(--color-texto);
   transition: border-color var(--transicion);
 }
@@ -239,7 +249,7 @@ td {
 
 th {
   background: var(--color-primario-claro);
-  color: var(--color-primario-oscuro);
+  color: var(--color-titulo);
   font-weight: 600;
 }
 
@@ -269,8 +279,8 @@ tr.editando {
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 500;
-  background: var(--color-primario-claro);
-  color: var(--color-primario);
+  background: var(--color-acento-claro);
+  color: var(--color-acento);
 }
 
 .etiqueta-docente {
@@ -345,7 +355,7 @@ tr.editando {
 }
 
 .bienvenida h1 span {
-  color: var(--color-acento);
+  color: var(--color-primario);
 }
 
 .acceso-publico {
@@ -416,7 +426,7 @@ tr.editando {
   td[data-etiqueta]::before {
     content: attr(data-etiqueta);
     font-weight: 600;
-    color: var(--color-primario-oscuro);
+    color: var(--color-titulo);
     text-align: left;
   }
 
