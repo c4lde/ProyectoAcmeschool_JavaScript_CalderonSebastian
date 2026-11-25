@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentar examen · Acme School</title>
+  <link rel="icon" href="../imagenes/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/script.js" defer></script>
+  <script src="../js/componentes/acme-menu.js" defer></script>
+  <script src="../js/componentes/tarjeta-examen.js" defer></script>
+  <script src="../js/componentes/registro-estudiante.js" defer></script>
+  <script src="../js/componentes/reloj-examen.js" defer></script>
+  <script src="../js/componentes/pregunta-examen.js" defer></script>
+  <script src="../js/componentes/resultado-examen.js" defer></script>
+  <script src="../js/presentar.js" defer></script>
+</head>
+<body>
+  <acme-menu activo="presentar"></acme-menu>
+
+  <main>
+    <!-- Vista 1: lista de exámenes disponibles -->
+    <section id="vistaLista" class="vista">
+      <section class="panel">
+        <h1>Exámenes disponibles</h1>
+        <p class="subtitulo">Elige un examen. No necesitas iniciar sesión.</p>
+      </section>
+      <div id="listaExamenes" class="grilla-examenes"></div>
+      <p id="sinExamenes" class="panel vacio oculto">Por ahora no hay exámenes disponibles.</p>
+    </section>
+
+    <!-- Vista 2: datos de quien presenta -->
+    <registro-estudiante id="registroEstudiante" class="oculto"></registro-estudiante>
+
+    <!-- Vista 3: el examen -->
+    <section id="vistaExamen" class="vista oculto">
+      <header class="panel encabezado-examen">
+        <div class="info-examen">
+          <h1 id="tituloExamen"></h1>
+          <p id="estudianteExamen" class="subtitulo"></p>
+          <ul class="datos-examen">
+            <li>Preguntas: <strong id="totalPreguntas"></strong></li>
+            <li>Para aprobar: <strong id="porcentajeAprobar"></strong></li>
+            <li>Respondidas: <strong id="progresoRespuestas"></strong></li>
+          </ul>
+        </div>
+        <reloj-examen id="reloj"></reloj-examen>
+      </header>
+
+      <form id="formExamen" class="vista" novalidate>
+        <div id="contenedorPreguntas" class="vista"></div>
+        <p id="mensajeExamen" class="mensaje" role="alert"></p>
+        <button type="submit" id="btnTerminar" class="btn btn-primario btn-terminar">Terminar</button>
+      </form>
+    </section>
+
+    <!-- Vista 4: resultado -->
+    <resultado-examen id="resultadoExamen" class="oculto"></resultado-examen>
+  </main>
+</body>
+</html>
