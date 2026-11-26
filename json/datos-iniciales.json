@@ -72,6 +72,137 @@
             { "descripcion": "innerHTML", "correcta": false },
             { "descripcion": "textContent", "correcta": true }
           ]
+        },
+        {
+          "enunciado": "¿Qué propiedad permite subir de un elemento a su elemento padre?",
+          "respuestas": [
+            { "descripcion": "children", "correcta": false },
+            { "descripcion": "firstElementChild", "correcta": false },
+            { "descripcion": "parentElement", "correcta": true }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo": "ARR-001",
+      "titulo": "Arreglos y objetos",
+      "tiempo": 8,
+      "porcentaje": 60,
+      "descripcion": "Métodos de arreglos, spread y conversión de objetos a JSON.",
+      "preguntas": [
+        {
+          "enunciado": "¿Qué método devuelve el primer elemento que cumple una condición?",
+          "respuestas": [
+            { "descripcion": "find()", "correcta": true },
+            { "descripcion": "filter()", "correcta": false },
+            { "descripcion": "map()", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Qué método crea un arreglo nuevo aplicando una función a cada elemento?",
+          "respuestas": [
+            { "descripcion": "forEach()", "correcta": false },
+            { "descripcion": "map()", "correcta": true },
+            { "descripcion": "push()", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Qué hace el operador spread (...) con un arreglo?",
+          "respuestas": [
+            { "descripcion": "Lo ordena de menor a mayor", "correcta": false },
+            { "descripcion": "Elimina sus elementos repetidos", "correcta": false },
+            { "descripcion": "Copia sus elementos en otro arreglo", "correcta": true }
+          ]
+        },
+        {
+          "enunciado": "¿Qué método convierte un objeto en texto JSON para guardarlo en localStorage?",
+          "respuestas": [
+            { "descripcion": "JSON.parse()", "correcta": false },
+            { "descripcion": "JSON.stringify()", "correcta": true },
+            { "descripcion": "toString()", "correcta": false }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo": "ASY-001",
+      "titulo": "Asincronía y promesas",
+      "tiempo": 10,
+      "porcentaje": 70,
+      "descripcion": "Callbacks, promesas, async/await, manejo de errores y fetch.",
+      "preguntas": [
+        {
+          "enunciado": "¿Qué palabra espera el resultado de una promesa dentro de una función async?",
+          "respuestas": [
+            { "descripcion": "then", "correcta": false },
+            { "descripcion": "await", "correcta": true },
+            { "descripcion": "wait", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Qué bloque captura el error que se lanza dentro de un try?",
+          "respuestas": [
+            { "descripcion": "catch", "correcta": true },
+            { "descripcion": "finally", "correcta": false },
+            { "descripcion": "else", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Qué devuelve la función fetch()?",
+          "respuestas": [
+            { "descripcion": "Un texto con la respuesta", "correcta": false },
+            { "descripcion": "Un arreglo con los datos", "correcta": false },
+            { "descripcion": "Una promesa", "correcta": true }
+          ]
+        },
+        {
+          "enunciado": "¿Qué propiedad de la respuesta de fetch indica si la petición fue exitosa?",
+          "respuestas": [
+            { "descripcion": "ok", "correcta": true },
+            { "descripcion": "data", "correcta": false },
+            { "descripcion": "success", "correcta": false }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo": "WEB-001",
+      "titulo": "Repaso rápido: eventos y Web Components",
+      "tiempo": 1,
+      "porcentaje": 60,
+      "descripcion": "Repaso de 1 minuto sobre eventos, eventos personalizados, Custom Elements y Shadow DOM.",
+      "preguntas": [
+        {
+          "enunciado": "¿Qué método evita que un formulario recargue la página al enviarse?",
+          "respuestas": [
+            { "descripcion": "preventDefault()", "correcta": true },
+            { "descripcion": "stopPropagation()", "correcta": false },
+            { "descripcion": "removeEventListener()", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Qué opción hace que un CustomEvent se propague hacia los elementos padres?",
+          "respuestas": [
+            { "descripcion": "detail", "correcta": false },
+            { "descripcion": "bubbles: true", "correcta": true },
+            { "descripcion": "once: true", "correcta": false }
+          ]
+        },
+        {
+          "enunciado": "¿Qué método adjunta un Shadow DOM a un elemento?",
+          "respuestas": [
+            { "descripcion": "appendChild()", "correcta": false },
+            { "descripcion": "createShadow()", "correcta": false },
+            { "descripcion": "attachShadow()", "correcta": true }
+          ]
+        },
+        {
+          "enunciado": "¿Qué debe tener obligatoriamente el nombre de un Custom Element?",
+          "respuestas": [
+            { "descripcion": "Al menos un guion, por ejemplo mi-elemento", "correcta": true },
+            { "descripcion": "Solo letras mayúsculas", "correcta": false },
+            { "descripcion": "Un número al final", "correcta": false }
+          ]
         }
       ]
     }
