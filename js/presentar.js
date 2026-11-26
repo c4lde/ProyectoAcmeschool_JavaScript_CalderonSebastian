@@ -210,7 +210,8 @@ function finalizarExamen(finalizadoPor) {
     aciertos,
     total,
     porcentaje,
-    aprobado: (aciertos / total) * 100 >= examenActual.porcentaje,
+    // Se aprueba con el mismo porcentaje redondeado que se le muestra al estudiante
+    aprobado: porcentaje >= examenActual.porcentaje,
     segundosUsados: examenActual.tiempo * 60 - reloj.segundosRestantes,
     finalizadoPor                     // "estudiante" o "tiempo"
   };

@@ -125,7 +125,7 @@ Cada componente es una clase que extiende `HTMLElement`, crea su Shadow DOM con 
 | `<tabla-examenes>` | Tabla de exámenes | `editar-examen`, `eliminar-examen` |
 | `<tarjeta-examen>` | Examen disponible en la lista pública (datos por atributos) | `elegir-examen` |
 | `<registro-estudiante>` | Datos de quien presenta el examen | `comenzar-examen`, `volver` |
-| `<reloj-examen>` | Cuenta regresiva (atributo `minutos`) | `tiempo-agotado` |
+| `<reloj-examen>` | Cuenta regresiva (atributo `minutos`) | `tic` (cada segundo), `tiempo-agotado` |
 | `<pregunta-examen>` | Una pregunta para responder | `respondida` |
 | `<resultado-examen>` | Porcentaje de aciertos y aprobación | `volver-lista` |
 
