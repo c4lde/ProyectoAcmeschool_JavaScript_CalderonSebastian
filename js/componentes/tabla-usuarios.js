@@ -1,46 +1,18 @@
 // =========================================================
 // Web Component <tabla-usuarios>
 // Muestra los usuarios registrados con botones Editar y Eliminar.
+// Plantilla: <template id="tpl-tabla-usuarios"> en html/usuarios.html
 // Eventos que emite: "editar-usuario" y "eliminar-usuario" con detail { identificacion }
 // Método para la página: renderizar(usuarios, identificacionEditando)
 // =========================================================
-
-const plantillaTablaUsuarios = document.createElement("template");
-plantillaTablaUsuarios.innerHTML = `
-  <link rel="stylesheet" href="${RUTA_BASE}css/style.css">
-  <style>
-    :host {
-      display: block;
-    }
-  </style>
-  <section class="panel">
-    <div class="encabezado-pagina">
-      <h2>Usuarios registrados</h2>
-      <p id="resumen" class="subtitulo"></p>
-    </div>
-    <div class="contenedor-tabla">
-      <table>
-        <thead>
-          <tr>
-            <th>Identificación</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Cargo</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpo"></tbody>
-      </table>
-    </div>
-  </section>
-`;
 
 class TablaUsuarios extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.appendChild(plantillaTablaUsuarios.content.cloneNode(true));
+    // Se clona el <template> de la página dentro del Shadow DOM
+    const plantilla = document.getElementById("tpl-tabla-usuarios");
+    this.shadowRoot.appendChild(plantilla.content.cloneNode(true));
     this.cuerpo = this.shadowRoot.getElementById("cuerpo");
     this.resumen = this.shadowRoot.getElementById("resumen");
   }
@@ -56,12 +28,17 @@ class TablaUsuarios extends HTMLElement {
   // UN solo listener para todos los botones (delegación de eventos):
   // se lee data-accion del botón y se sube hasta la fila para saber qué usuario es.
   clicEnTabla = (e) => {
-    const accion = e.target.dataset.accion;
-    if (accion === undefined) return; // el clic no fue en un botón
+    const boton = e.target;
+    const accion = boton.getAttribute("data-accion");
+    if (accion === null) return; // el clic no fue en un botón
 
-    const identificacion = e.target.closest("tr").dataset.id;
+    // Eliminar pide un segundo clic para confirmar
+    if (accion === "eliminar" && !confirmarConDobleClic(boton)) return;
+
+    // botón → div.celda-acciones → td → tr
+    const fila = boton.parentElement.parentElement.parentElement;
     this.dispatchEvent(new CustomEvent(`${accion}-usuario`, {
-      detail: { identificacion },
+      detail: { identificacion: fila.getAttribute("data-id") },
       bubbles: true
     }));
   };
@@ -70,7 +47,7 @@ class TablaUsuarios extends HTMLElement {
   renderizar(usuarios, identificacionEditando) {
     const filas = usuarios.map((usuario) => {
       const fila = document.createElement("tr");
-      fila.dataset.id = usuario.identificacion;
+      fila.setAttribute("data-id", usuario.identificacion);
       fila.classList.toggle("editando", usuario.identificacion === identificacionEditando);
 
       const celdaCargo = crearCelda("", "Cargo");

@@ -335,6 +335,47 @@ tr.editando {
 }
 
 /* =========================================================
+   Web Components
+   ========================================================= */
+/* Las etiquetas personalizadas se muestran en línea (inline) por defecto:
+   aquí se convierten en bloques para que ocupen todo el ancho */
+acme-menu,
+formulario-login,
+formulario-usuario,
+tabla-usuarios,
+formulario-examen,
+editor-pregunta,
+tabla-examenes,
+tarjeta-examen,
+registro-estudiante,
+reloj-examen,
+pregunta-examen,
+resultado-examen {
+  display: block;
+}
+
+/* Tarjetas centradas de ancho limitado */
+registro-estudiante,
+resultado-examen {
+  width: 100%;
+  justify-self: center;
+}
+
+registro-estudiante {
+  max-width: 560px;
+}
+
+resultado-examen {
+  max-width: 620px;
+}
+
+/* Botón Eliminar esperando el segundo clic de confirmación */
+.btn-peligro.confirmar {
+  outline: 2px solid var(--color-peligro);
+  outline-offset: 2px;
+}
+
+/* =========================================================
    Página de entrada (index.html): login
    ========================================================= */
 .entrada {
@@ -356,6 +397,11 @@ tr.editando {
 
 .bienvenida h1 span {
   color: var(--color-primario);
+}
+
+.formulario-login {
+  display: grid;
+  gap: 16px;
 }
 
 .acceso-publico {

@@ -1,46 +1,18 @@
 // =========================================================
 // Web Component <tabla-examenes>
 // Muestra los exámenes registrados con botones Editar y Eliminar.
+// Plantilla: <template id="tpl-tabla-examenes"> en html/examenes.html
 // Eventos que emite: "editar-examen" y "eliminar-examen" con detail { codigo }
 // Método para la página: renderizar(examenes, codigoEditando)
 // =========================================================
-
-const plantillaTablaExamenes = document.createElement("template");
-plantillaTablaExamenes.innerHTML = `
-  <link rel="stylesheet" href="${RUTA_BASE}css/style.css">
-  <style>
-    :host {
-      display: block;
-    }
-  </style>
-  <section class="panel">
-    <div class="encabezado-pagina">
-      <h2>Exámenes registrados</h2>
-      <p id="resumen" class="subtitulo"></p>
-    </div>
-    <div class="contenedor-tabla">
-      <table>
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Título</th>
-            <th>Tiempo</th>
-            <th>Aprobación</th>
-            <th>Preguntas</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpo"></tbody>
-      </table>
-    </div>
-  </section>
-`;
 
 class TablaExamenes extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.appendChild(plantillaTablaExamenes.content.cloneNode(true));
+    // Se clona el <template> de la página dentro del Shadow DOM
+    const plantilla = document.getElementById("tpl-tabla-examenes");
+    this.shadowRoot.appendChild(plantilla.content.cloneNode(true));
     this.cuerpo = this.shadowRoot.getElementById("cuerpo");
     this.resumen = this.shadowRoot.getElementById("resumen");
   }
@@ -55,12 +27,17 @@ class TablaExamenes extends HTMLElement {
 
   // UN solo listener para todos los botones (delegación de eventos)
   clicEnTabla = (e) => {
-    const accion = e.target.dataset.accion;
-    if (accion === undefined) return;
+    const boton = e.target;
+    const accion = boton.getAttribute("data-accion");
+    if (accion === null) return;
 
-    const codigo = e.target.closest("tr").dataset.id;
+    // Eliminar pide un segundo clic para confirmar
+    if (accion === "eliminar" && !confirmarConDobleClic(boton)) return;
+
+    // botón → div.celda-acciones → td → tr
+    const fila = boton.parentElement.parentElement.parentElement;
     this.dispatchEvent(new CustomEvent(`${accion}-examen`, {
-      detail: { codigo },
+      detail: { codigo: fila.getAttribute("data-id") },
       bubbles: true
     }));
   };
@@ -69,7 +46,7 @@ class TablaExamenes extends HTMLElement {
   renderizar(examenes, codigoEditando) {
     const filas = examenes.map((examen) => {
       const fila = document.createElement("tr");
-      fila.dataset.id = examen.codigo;
+      fila.setAttribute("data-id", examen.codigo);
       fila.classList.toggle("editando", examen.codigo === codigoEditando);
 
       const celdaCodigo = crearCelda("", "Código");

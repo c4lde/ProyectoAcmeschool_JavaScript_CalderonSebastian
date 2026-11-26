@@ -2,6 +2,7 @@
 // Web Component <editor-pregunta>
 // Edita UNA pregunta: su enunciado y sus respuestas. La respuesta
 // correcta se marca con un radio, así solo puede haber una.
+// Plantilla: <template id="tpl-editor-pregunta"> en html/examenes.html
 // Atributo: numero (se muestra como "Pregunta 1", "Pregunta 2"...)
 // Evento que emite: "eliminar-pregunta"
 // Métodos: cargar(pregunta), obtenerDatos(), validar()
@@ -9,77 +10,13 @@
 
 const MINIMO_RESPUESTAS = 2;
 
-const plantillaEditorPregunta = document.createElement("template");
-plantillaEditorPregunta.innerHTML = `
-  <link rel="stylesheet" href="${RUTA_BASE}css/style.css">
-  <style>
-    :host {
-      display: block;
-    }
-    .pregunta {
-      border: 1px solid var(--color-borde);
-      border-left: 4px solid var(--color-primario);
-      border-radius: var(--radio);
-      padding: 16px;
-      display: grid;
-      gap: 12px;
-      animation: aparecer 0.3s ease;
-    }
-    .cabecera {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    #respuestas {
-      display: grid;
-      gap: 8px;
-    }
-    .respuesta {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 8px;
-    }
-    .respuesta input[type="radio"] {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--color-exito);
-      cursor: pointer;
-    }
-    .ayuda {
-      font-size: 0.85rem;
-      color: var(--color-texto-suave);
-    }
-    /* El espacio del error solo aparece cuando hay un error */
-    .error:empty {
-      display: none;
-    }
-  </style>
-  <div class="pregunta">
-    <div class="cabecera">
-      <h3 id="titulo">Pregunta</h3>
-      <button type="button" id="btnEliminar" class="btn btn-peligro btn-pequeno">Eliminar pregunta</button>
-    </div>
-    <div class="campo">
-      <label for="enunciado">Enunciado</label>
-      <textarea id="enunciado" rows="2" placeholder="Escribe la pregunta"></textarea>
-    </div>
-    <p class="ayuda">Respuestas: marca con el círculo la respuesta correcta.</p>
-    <div id="respuestas"></div>
-    <div>
-      <button type="button" id="btnAgregarRespuesta" class="btn btn-secundario btn-pequeno">+ Agregar respuesta</button>
-    </div>
-    <p id="error" class="error" role="alert"></p>
-  </div>
-`;
-
 class EditorPregunta extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.appendChild(plantillaEditorPregunta.content.cloneNode(true));
+    // Se clona el <template> de la página dentro del Shadow DOM
+    const plantilla = document.getElementById("tpl-editor-pregunta");
+    this.shadowRoot.appendChild(plantilla.content.cloneNode(true));
 
     this.titulo = this.shadowRoot.getElementById("titulo");
     this.enunciado = this.shadowRoot.getElementById("enunciado");
@@ -121,13 +58,13 @@ class EditorPregunta extends HTMLElement {
 
   clicAgregar = () => {
     this.agregarRespuesta("", false);
-    this.respuestas.lastElementChild.querySelector('input[type="text"]').focus();
   };
 
   // UN solo listener para los botones "Quitar" de todas las respuestas
   clicEnRespuestas = (e) => {
-    if (e.target.dataset.accion !== "quitar") return;
-    e.target.closest(".respuesta").remove();
+    if (e.target.getAttribute("data-accion") !== "quitar") return;
+    // botón → div.respuesta
+    e.target.parentElement.remove();
     this.actualizarRespuestas();
   };
 
@@ -163,7 +100,7 @@ class EditorPregunta extends HTMLElement {
       texto.placeholder = `Respuesta ${indice + 1}`;
       texto.setAttribute("aria-label", `Respuesta ${indice + 1}`);
       radio.setAttribute("aria-label", `Marcar la respuesta ${indice + 1} como correcta`);
-      fila.querySelector("[data-accion=quitar]").disabled = filas.length <= MINIMO_RESPUESTAS;
+      fila.querySelector('[data-accion="quitar"]').disabled = filas.length <= MINIMO_RESPUESTAS;
     });
   }
 
@@ -186,15 +123,17 @@ class EditorPregunta extends HTMLElement {
   // Revisa la pregunta y muestra el primer problema que encuentre
   validar() {
     const { enunciado, respuestas } = this.obtenerDatos();
+    const vacias = respuestas.filter((r) => r.descripcion === "").length;
+    const correctas = respuestas.filter((r) => r.correcta).length;
     let error = "";
 
     if (enunciado.length < 5) {
       error = "Escribe el enunciado de la pregunta (mínimo 5 caracteres).";
     } else if (respuestas.length < MINIMO_RESPUESTAS) {
       error = `La pregunta debe tener mínimo ${MINIMO_RESPUESTAS} respuestas.`;
-    } else if (respuestas.some((r) => r.descripcion === "")) {
+    } else if (vacias > 0) {
       error = "Ninguna respuesta puede quedar vacía.";
-    } else if (respuestas.filter((r) => r.correcta).length !== 1) {
+    } else if (correctas !== 1) {
       error = "Marca cuál es la respuesta correcta.";
     }
 

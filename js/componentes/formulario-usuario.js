@@ -1,65 +1,10 @@
 // =========================================================
 // Web Component <formulario-usuario>
 // Formulario para crear y actualizar usuarios. Valida cada campo.
+// Plantilla: <template id="tpl-formulario-usuario"> en html/usuarios.html
 // Evento que emite: "guardar-usuario" con detail { usuario, identificacionEditando }
 // Métodos para la página: editar(usuario), limpiar(), mostrarMensaje(texto, tipo)
 // =========================================================
-
-const plantillaFormularioUsuario = document.createElement("template");
-plantillaFormularioUsuario.innerHTML = `
-  <link rel="stylesheet" href="${RUTA_BASE}css/style.css">
-  <style>
-    :host {
-      display: block;
-    }
-  </style>
-  <section class="panel">
-    <h2 id="titulo">Nuevo usuario</h2>
-    <form id="formulario" class="formulario" novalidate>
-      <div class="campo">
-        <label for="identificacion">Número de identificación</label>
-        <input type="text" id="identificacion" name="identificacion" inputmode="numeric" placeholder="1012345678">
-        <p id="error-identificacion" class="error"></p>
-      </div>
-      <div class="campo">
-        <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" name="nombre" placeholder="Ana María Pérez">
-        <p id="error-nombre" class="error"></p>
-      </div>
-      <div class="campo">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="ana.perez@acme.edu.co">
-        <p id="error-email" class="error"></p>
-      </div>
-      <div class="campo">
-        <label for="telefono">Teléfono</label>
-        <input type="tel" id="telefono" name="telefono" inputmode="numeric" placeholder="3001234567">
-        <p id="error-telefono" class="error"></p>
-      </div>
-      <div class="campo">
-        <label for="cargo">Cargo</label>
-        <select id="cargo" name="cargo">
-          <option value="">Selecciona un cargo</option>
-          <option value="Administrativo">Administrativo</option>
-          <option value="Docente">Docente</option>
-        </select>
-        <p id="error-cargo" class="error"></p>
-      </div>
-      <div class="campo">
-        <label for="contrasena">Contraseña</label>
-        <input type="password" id="contrasena" name="contrasena" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
-        <p id="error-contrasena" class="error"></p>
-      </div>
-
-      <p id="mensaje" class="mensaje campo-completo" role="alert"></p>
-
-      <div class="acciones">
-        <button type="submit" id="btnGuardar" class="btn btn-primario">Crear usuario</button>
-        <button type="button" id="btnCancelar" class="btn btn-secundario oculto">Cancelar edición</button>
-      </div>
-    </form>
-  </section>
-`;
 
 // Reglas de validación: cada campo devuelve un mensaje de error o "" si está bien
 const REGLAS_USUARIO = {
@@ -81,10 +26,12 @@ class FormularioUsuario extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.appendChild(plantillaFormularioUsuario.content.cloneNode(true));
+    // Se clona el <template> de la página dentro del Shadow DOM
+    const plantilla = document.getElementById("tpl-formulario-usuario");
+    this.shadowRoot.appendChild(plantilla.content.cloneNode(true));
 
     this.formulario = this.shadowRoot.getElementById("formulario");
-    this.titulo = this.shadowRoot.getElementById("titulo");
+    this.titulo = this.shadowRoot.getElementById("tituloFormulario");
     this.mensaje = this.shadowRoot.getElementById("mensaje");
     this.btnGuardar = this.shadowRoot.getElementById("btnGuardar");
     this.btnCancelar = this.shadowRoot.getElementById("btnCancelar");
@@ -105,9 +52,14 @@ class FormularioUsuario extends HTMLElement {
     this.btnCancelar.removeEventListener("click", this.cancelar);
   }
 
+  // Devuelve el campo del formulario (cada input tiene como id el nombre del dato)
+  campo(nombreCampo) {
+    return this.shadowRoot.getElementById(nombreCampo);
+  }
+
   // Valida un campo con REGLAS_USUARIO, muestra el error debajo y marca el input
   validarCampo(nombreCampo) {
-    const input = this.formulario.elements[nombreCampo];
+    const input = this.campo(nombreCampo);
     const error = REGLAS_USUARIO[nombreCampo](input.value.trim());
     this.shadowRoot.getElementById(`error-${nombreCampo}`).textContent = error;
     input.classList.toggle("incorrecto", error !== "");
@@ -116,33 +68,32 @@ class FormularioUsuario extends HTMLElement {
 
   // UN solo listener para todo el formulario: el evento input burbujea desde cada campo
   validarEnVivo = (e) => {
-    if (REGLAS_USUARIO[e.target.name] !== undefined) this.validarCampo(e.target.name);
+    if (REGLAS_USUARIO[e.target.id] !== undefined) this.validarCampo(e.target.id);
   };
 
   enviar = (e) => {
     e.preventDefault();
 
-    // map (y no every) para que se muestren los errores de TODOS los campos a la vez
-    const errores = Object.keys(REGLAS_USUARIO)
-      .map((campo) => this.validarCampo(campo))
-      .filter((valido) => !valido).length;
-
+    // Se validan TODOS los campos (sin detenerse en el primero) para mostrar todos los errores
+    let errores = 0;
+    for (const nombreCampo in REGLAS_USUARIO) {
+      if (!this.validarCampo(nombreCampo)) errores++;
+    }
     if (errores > 0) {
       this.mostrarMensaje(`Revisa el formulario: hay ${errores} campo(s) con error.`, "fallo");
       return;
     }
 
-    const datos = new FormData(this.formulario);
     const usuario = {
-      // El input deshabilitado no viaja en FormData, por eso en edición se usa la identificación guardada
+      // En edición la identificación no cambia (el input está deshabilitado)
       identificacion: this.identificacionEditando !== null
         ? this.identificacionEditando
-        : datos.get("identificacion").trim(),
-      nombre: datos.get("nombre").trim(),
-      email: datos.get("email").trim().toLowerCase(),
-      telefono: datos.get("telefono").trim(),
-      cargo: datos.get("cargo"),
-      contrasena: datos.get("contrasena")
+        : this.campo("identificacion").value.trim(),
+      nombre: this.campo("nombre").value.trim(),
+      email: this.campo("email").value.trim().toLowerCase(),
+      telefono: this.campo("telefono").value.trim(),
+      cargo: this.campo("cargo").value,
+      contrasena: this.campo("contrasena").value
     };
 
     this.dispatchEvent(new CustomEvent("guardar-usuario", {
@@ -159,30 +110,27 @@ class FormularioUsuario extends HTMLElement {
   // Llena el formulario con un usuario y lo pasa a modo editar
   editar(usuario) {
     const { identificacion, nombre, email, telefono, cargo, contrasena } = usuario;
-    const campos = this.formulario.elements;
-    campos.identificacion.value = identificacion;
-    campos.nombre.value = nombre;
-    campos.email.value = email;
-    campos.telefono.value = telefono;
-    campos.cargo.value = cargo;
-    campos.contrasena.value = contrasena;
+    this.campo("identificacion").value = identificacion;
+    this.campo("nombre").value = nombre;
+    this.campo("email").value = email;
+    this.campo("telefono").value = telefono;
+    this.campo("cargo").value = cargo;
+    this.campo("contrasena").value = contrasena;
 
     this.identificacionEditando = identificacion;
-    campos.identificacion.disabled = true; // la identificación es la llave, no se cambia
+    this.campo("identificacion").disabled = true; // la identificación es la llave, no se cambia
     this.titulo.textContent = `Editando a ${nombre}`;
     this.btnGuardar.textContent = "Guardar cambios";
     this.btnCancelar.classList.remove("oculto");
     this.limpiarErrores();
     this.mostrarMensaje("", "");
-    this.scrollIntoView({ behavior: "smooth" });
-    campos.nombre.focus();
   }
 
   // Deja el formulario vacío y en modo crear
   limpiar() {
-    this.formulario.reset();
+    limpiarCampos(this.formulario);
     this.identificacionEditando = null;
-    this.formulario.elements.identificacion.disabled = false;
+    this.campo("identificacion").disabled = false;
     this.titulo.textContent = "Nuevo usuario";
     this.btnGuardar.textContent = "Crear usuario";
     this.btnCancelar.classList.add("oculto");
@@ -190,10 +138,10 @@ class FormularioUsuario extends HTMLElement {
   }
 
   limpiarErrores() {
-    Object.keys(REGLAS_USUARIO).forEach((campo) => {
-      this.shadowRoot.getElementById(`error-${campo}`).textContent = "";
-      this.formulario.elements[campo].classList.remove("incorrecto");
-    });
+    for (const nombreCampo in REGLAS_USUARIO) {
+      this.shadowRoot.getElementById(`error-${nombreCampo}`).textContent = "";
+      this.campo(nombreCampo).classList.remove("incorrecto");
+    }
   }
 
   mostrarMensaje(texto, tipo) {

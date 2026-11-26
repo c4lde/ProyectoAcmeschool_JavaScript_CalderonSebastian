@@ -27,5 +27,156 @@
     <formulario-examen id="formularioExamen"></formulario-examen>
     <tabla-examenes id="tablaExamenes"></tabla-examenes>
   </main>
+
+  <!-- Plantilla del Web Component <formulario-examen> -->
+  <template id="tpl-formulario-examen">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+      .seccion-preguntas {
+        display: grid;
+        gap: 16px;
+        grid-column: 1 / -1;
+        padding-top: 8px;
+        border-top: 1px solid var(--color-borde);
+      }
+      #preguntas {
+        display: grid;
+        gap: 16px;
+      }
+    </style>
+    <section class="panel">
+      <h2 id="tituloFormulario">Nuevo examen</h2>
+      <form id="formulario" class="formulario" novalidate>
+        <div class="campo">
+          <label for="codigo">Código</label>
+          <input type="text" id="codigo" name="codigo" placeholder="JS-002">
+          <p id="error-codigo" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="titulo">Título</label>
+          <input type="text" id="titulo" name="titulo" placeholder="Arreglos y objetos">
+          <p id="error-titulo" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="tiempo">Tiempo (minutos)</label>
+          <input type="number" id="tiempo" name="tiempo" min="1" max="180" placeholder="30">
+          <p id="error-tiempo" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="porcentaje">Porcentaje de aprobación (%)</label>
+          <input type="number" id="porcentaje" name="porcentaje" min="1" max="100" placeholder="60">
+          <p id="error-porcentaje" class="error"></p>
+        </div>
+        <div class="campo campo-completo">
+          <label for="descripcion">Descripción del examen</label>
+          <textarea id="descripcion" name="descripcion" rows="2" placeholder="Temas que evalúa el examen"></textarea>
+          <p id="error-descripcion" class="error"></p>
+        </div>
+
+        <div class="seccion-preguntas">
+          <div class="encabezado-pagina">
+            <h3 id="contadorPreguntas">Preguntas</h3>
+            <button type="button" id="btnAgregarPregunta" class="btn btn-acento btn-pequeno">+ Agregar pregunta</button>
+          </div>
+          <div id="preguntas"></div>
+        </div>
+
+        <p id="mensaje" class="mensaje campo-completo" role="alert"></p>
+
+        <div class="acciones">
+          <button type="submit" id="btnGuardar" class="btn btn-primario">Crear examen</button>
+          <button type="button" id="btnCancelar" class="btn btn-secundario oculto">Cancelar edición</button>
+        </div>
+      </form>
+    </section>
+  </template>
+
+  <!-- Plantilla del Web Component <editor-pregunta> -->
+  <template id="tpl-editor-pregunta">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+      .pregunta {
+        border: 1px solid var(--color-borde);
+        border-left: 4px solid var(--color-primario);
+        border-radius: var(--radio);
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+        animation: aparecer 0.3s ease;
+      }
+      .cabecera {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      #respuestas {
+        display: grid;
+        gap: 8px;
+      }
+      .respuesta {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 8px;
+      }
+      .respuesta input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+      }
+      .ayuda {
+        font-size: 0.85rem;
+        color: var(--color-texto-suave);
+      }
+      /* El espacio del error solo aparece cuando hay un error */
+      .error:empty {
+        display: none;
+      }
+    </style>
+    <div class="pregunta">
+      <div class="cabecera">
+        <h3 id="titulo">Pregunta</h3>
+        <button type="button" id="btnEliminar" class="btn btn-peligro btn-pequeno">Eliminar pregunta</button>
+      </div>
+      <div class="campo">
+        <label for="enunciado">Enunciado</label>
+        <textarea id="enunciado" rows="2" placeholder="Escribe la pregunta"></textarea>
+      </div>
+      <p class="ayuda">Respuestas: marca con el círculo la respuesta correcta.</p>
+      <div id="respuestas"></div>
+      <div>
+        <button type="button" id="btnAgregarRespuesta" class="btn btn-secundario btn-pequeno">+ Agregar respuesta</button>
+      </div>
+      <p id="error" class="error" role="alert"></p>
+    </div>
+  </template>
+
+  <!-- Plantilla del Web Component <tabla-examenes> -->
+  <template id="tpl-tabla-examenes">
+    <link rel="stylesheet" href="../css/style.css">
+    <section class="panel">
+      <div class="encabezado-pagina">
+        <h2>Exámenes registrados</h2>
+        <p id="resumen" class="subtitulo"></p>
+      </div>
+      <div class="contenedor-tabla">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Título</th>
+              <th>Tiempo</th>
+              <th>Aprobación</th>
+              <th>Preguntas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo"></tbody>
+        </table>
+      </div>
+    </section>
+  </template>
 </body>
 </html>

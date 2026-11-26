@@ -3,103 +3,49 @@
 // Muestra UNA pregunta numerada con sus respuestas para elegir una.
 // Solo recibe el texto de las respuestas, nunca cuál es la correcta:
 // así no se puede descubrir la respuesta inspeccionando la página.
+// Plantilla: <template id="tpl-pregunta-examen"> en html/presentar.html
 // Evento que emite: "respondida" cuando se elige una respuesta
-// Métodos: cargar(pregunta, numero), respuestaElegida(), bloquear()
+// Métodos: cargar(pregunta, numero), respuestaElegida(), marcar(indice), bloquear()
 // =========================================================
-
-const plantillaPreguntaExamen = document.createElement("template");
-plantillaPreguntaExamen.innerHTML = `
-  <link rel="stylesheet" href="${RUTA_BASE}css/style.css">
-  <style>
-    :host {
-      display: block;
-    }
-    fieldset {
-      border: none;
-      display: grid;
-      gap: 12px;
-    }
-    legend {
-      font-weight: 600;
-      font-size: 1.05rem;
-      color: var(--color-titulo);
-      margin-bottom: 12px;
-    }
-    legend span {
-      color: var(--color-primario);
-      margin-right: 6px;
-    }
-    #opciones {
-      display: grid;
-      gap: 10px;
-    }
-    .opcion {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border: 1px solid var(--color-borde);
-      border-radius: var(--radio);
-      background: var(--color-campo);
-      cursor: pointer;
-      font-weight: 400;
-      font-size: 1rem;
-      transition: border-color var(--transicion), background var(--transicion);
-    }
-    .opcion:hover {
-      border-color: var(--color-acento);
-    }
-    /* :has() resalta la opción cuyo radio está marcado */
-    .opcion:has(input:checked) {
-      border-color: var(--color-primario);
-      background: var(--color-exito-claro);
-    }
-    .opcion input {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--color-primario);
-      cursor: pointer;
-    }
-    fieldset:disabled .opcion {
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-  </style>
-  <section class="panel">
-    <fieldset id="grupo">
-      <legend id="enunciado"></legend>
-      <div id="opciones"></div>
-    </fieldset>
-  </section>
-`;
 
 class PreguntaExamen extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.appendChild(plantillaPreguntaExamen.content.cloneNode(true));
-    this.grupo = this.shadowRoot.getElementById("grupo");
+    // Se clona el <template> de la página dentro del Shadow DOM
+    const plantilla = document.getElementById("tpl-pregunta-examen");
+    this.shadowRoot.appendChild(plantilla.content.cloneNode(true));
     this.enunciado = this.shadowRoot.getElementById("enunciado");
     this.opciones = this.shadowRoot.getElementById("opciones");
   }
 
   connectedCallback() {
-    this.opciones.addEventListener("change", this.avisarRespuesta);
+    this.opciones.addEventListener("change", this.alResponder);
   }
 
   disconnectedCallback() {
-    this.opciones.removeEventListener("change", this.avisarRespuesta);
+    this.opciones.removeEventListener("change", this.alResponder);
   }
 
-  avisarRespuesta = () => {
+  alResponder = () => {
+    this.resaltarElegida();
     this.dispatchEvent(new CustomEvent("respondida", { bubbles: true }));
   };
+
+  // La opción elegida lleva la clase "elegida" (borde y fondo verde)
+  resaltarElegida() {
+    this.opciones.querySelectorAll("label").forEach((opcion) => {
+      opcion.classList.toggle("elegida", opcion.querySelector("input").checked);
+    });
+  }
 
   // Pinta el enunciado numerado y una opción (label + radio) por respuesta
   cargar(pregunta, numero) {
     const numeroPregunta = document.createElement("span");
-    numeroPregunta.textContent = `${numero}.`;
-    this.enunciado.replaceChildren(numeroPregunta, pregunta.enunciado);
+    numeroPregunta.textContent = `${numero}. `;
+    const textoPregunta = document.createElement("span");
+    textoPregunta.textContent = pregunta.enunciado;
+    this.enunciado.replaceChildren(numeroPregunta, textoPregunta);
 
     const opciones = pregunta.respuestas.map((respuesta, indice) => {
       const opcion = document.createElement("label");
@@ -119,15 +65,26 @@ class PreguntaExamen extends HTMLElement {
     this.opciones.replaceChildren(...opciones);
   }
 
-  // Índice de la respuesta elegida, o null si no respondió
+  // Posición de la respuesta elegida, o null si no respondió
   respuestaElegida() {
     const marcada = this.opciones.querySelector("input:checked");
     return marcada === null ? null : Number(marcada.value);
   }
 
+  // Marca una respuesta (se usa al recuperar un examen en curso)
+  marcar(indice) {
+    const radio = this.opciones.querySelectorAll("input")[indice];
+    if (radio === undefined) return; // esa opción ya no existe
+    radio.checked = true;
+    this.resaltarElegida();
+  }
+
   // Al terminar el examen ya no se pueden cambiar las respuestas
   bloquear() {
-    this.grupo.disabled = true;
+    this.opciones.querySelectorAll("input").forEach((radio) => {
+      radio.disabled = true;
+    });
+    this.opciones.classList.add("bloqueado");
   }
 }
 

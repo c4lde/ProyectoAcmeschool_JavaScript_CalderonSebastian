@@ -49,6 +49,8 @@
         <reloj-examen id="reloj"></reloj-examen>
       </header>
 
+      <p id="avisoRecuperado" class="mensaje"></p>
+
       <form id="formExamen" class="vista" novalidate>
         <div id="contenedorPreguntas" class="vista"></div>
         <p id="mensajeExamen" class="mensaje" role="alert"></p>
@@ -59,5 +61,281 @@
     <!-- Vista 4: resultado -->
     <resultado-examen id="resultadoExamen" class="oculto"></resultado-examen>
   </main>
+
+  <!-- Plantilla del Web Component <tarjeta-examen> -->
+  <template id="tpl-tarjeta-examen">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+      .tarjeta {
+        height: 100%;
+        grid-template-rows: auto auto 1fr auto auto;
+        transition: transform var(--transicion), border-color var(--transicion);
+      }
+      .tarjeta:hover {
+        transform: translateY(-4px);
+        border-color: var(--color-primario);
+      }
+      .datos {
+        list-style: none;
+        display: grid;
+        gap: 6px;
+        padding: 12px 0;
+        border-top: 1px solid var(--color-borde);
+      }
+      .datos li {
+        display: flex;
+        justify-content: space-between;
+        color: var(--color-texto-suave);
+      }
+      .datos strong {
+        color: var(--color-texto);
+      }
+    </style>
+    <article class="panel tarjeta">
+      <div><span id="codigo" class="etiqueta"></span></div>
+      <h2 id="titulo"></h2>
+      <p id="descripcion" class="subtitulo"></p>
+      <ul class="datos">
+        <li>Tiempo para resolverlo <strong id="tiempo"></strong></li>
+        <li>Porcentaje para aprobar <strong id="porcentaje"></strong></li>
+        <li>Preguntas <strong id="preguntas"></strong></li>
+      </ul>
+      <button type="button" id="btnPresentar" class="btn btn-primario">Presentar examen</button>
+    </article>
+  </template>
+
+  <!-- Plantilla del Web Component <registro-estudiante> -->
+  <template id="tpl-registro-estudiante">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+      form {
+        display: grid;
+        gap: 16px;
+      }
+      .resumen {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    </style>
+    <section class="panel aparecer">
+      <div>
+        <p class="subtitulo">Vas a presentar</p>
+        <h2 id="titulo"></h2>
+      </div>
+      <ul class="resumen">
+        <li class="etiqueta" id="tiempo"></li>
+        <li class="etiqueta" id="porcentaje"></li>
+        <li class="etiqueta" id="preguntas"></li>
+      </ul>
+      <p class="subtitulo">Escribe tus datos. El tiempo empieza a correr cuando presiones "Comenzar examen".</p>
+      <form id="formulario" novalidate>
+        <div class="campo">
+          <label for="identificacion">Número de identificación</label>
+          <input type="text" id="identificacion" name="identificacion" inputmode="numeric" placeholder="1012345678" autocomplete="off">
+          <p id="error-identificacion" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre" name="nombre" placeholder="Ana María Pérez" autocomplete="name">
+          <p id="error-nombre" class="error"></p>
+        </div>
+        <div class="acciones">
+          <button type="submit" class="btn btn-primario">Comenzar examen</button>
+          <button type="button" id="btnVolver" class="btn btn-secundario">Volver a la lista</button>
+        </div>
+      </form>
+    </section>
+  </template>
+
+  <!-- Plantilla del Web Component <reloj-examen> -->
+  <template id="tpl-reloj-examen">
+    <style>
+      .reloj {
+        display: grid;
+        justify-items: center;
+        gap: 2px;
+        padding: 10px 18px;
+        border-radius: var(--radio);
+        border: 2px solid var(--color-primario);
+        background: var(--color-campo);
+        font-family: var(--fuente);
+        transition: border-color 0.3s, background 0.3s;
+      }
+      .etiqueta {
+        font-size: 0.75rem;
+        color: var(--color-texto-suave);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      #tiempo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--color-primario);
+      }
+      /* Último minuto: el reloj se pone rojo y late */
+      .reloj.alerta {
+        border-color: var(--color-peligro);
+        background: var(--color-peligro-claro);
+        animation: latir 1s ease-in-out infinite;
+      }
+      .reloj.alerta #tiempo {
+        color: var(--color-peligro);
+      }
+      @keyframes latir {
+        50% {
+          transform: scale(1.04);
+        }
+      }
+      @media (max-width: 700px) {
+        .reloj {
+          padding: 6px 12px;
+        }
+        #tiempo {
+          font-size: 1.3rem;
+        }
+        .etiqueta {
+          font-size: 0.65rem;
+        }
+      }
+    </style>
+    <div id="caja" class="reloj" role="timer" aria-label="Tiempo restante">
+      <span class="etiqueta">Tiempo restante</span>
+      <span id="tiempo">00:00</span>
+    </div>
+  </template>
+
+  <!-- Plantilla del Web Component <pregunta-examen> -->
+  <template id="tpl-pregunta-examen">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+      .enunciado {
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: var(--color-titulo);
+      }
+      .enunciado span:first-child {
+        color: var(--color-primario);
+      }
+      #opciones {
+        display: grid;
+        gap: 10px;
+      }
+      .opcion {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--color-borde);
+        border-radius: var(--radio);
+        background: var(--color-campo);
+        cursor: pointer;
+        font-weight: 400;
+        font-size: 1rem;
+        transition: border-color var(--transicion), background var(--transicion);
+      }
+      .opcion:hover {
+        border-color: var(--color-acento);
+      }
+      /* Clase que pone el componente en la opción marcada */
+      .opcion.elegida {
+        border-color: var(--color-primario);
+        background: var(--color-exito-claro);
+      }
+      .opcion input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+      }
+      .bloqueado .opcion {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+    </style>
+    <section class="panel" role="radiogroup" aria-labelledby="enunciado">
+      <p id="enunciado" class="enunciado"></p>
+      <div id="opciones"></div>
+    </section>
+  </template>
+
+  <!-- Plantilla del Web Component <resultado-examen> -->
+  <template id="tpl-resultado-examen">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+      .resultado {
+        text-align: center;
+        justify-items: center;
+        border-top: 6px solid var(--color-primario);
+      }
+      .resultado.reprobado {
+        border-top-color: var(--color-peligro);
+      }
+      .porcentaje {
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--color-primario);
+      }
+      .reprobado .porcentaje {
+        color: var(--color-peligro);
+      }
+      /* Barra de avance: el ancho del relleno es el porcentaje obtenido */
+      .barra {
+        width: 100%;
+        height: 14px;
+        border-radius: 999px;
+        background: var(--color-borde);
+        overflow: hidden;
+      }
+      .relleno {
+        width: 0;
+        height: 100%;
+        border-radius: 999px;
+        background: var(--color-primario);
+        transition: width 0.8s ease;
+      }
+      .reprobado .relleno {
+        background: var(--color-peligro);
+      }
+      #veredicto {
+        font-size: 1.6rem;
+      }
+      .detalle {
+        list-style: none;
+        display: grid;
+        gap: 6px;
+        width: 100%;
+        text-align: left;
+        padding: 12px 0;
+        border-top: 1px solid var(--color-borde);
+      }
+      .detalle li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--color-texto-suave);
+      }
+      .detalle strong {
+        color: var(--color-texto);
+        text-align: right;
+      }
+    </style>
+    <section id="caja" class="panel resultado aparecer">
+      <p id="motivo" class="subtitulo"></p>
+      <p id="porcentaje" class="porcentaje">0 %</p>
+      <div class="barra"><div id="relleno" class="relleno"></div></div>
+      <h2 id="veredicto"></h2>
+      <p id="mensaje" class="subtitulo"></p>
+      <ul class="detalle">
+        <li>Estudiante <strong id="estudiante"></strong></li>
+        <li>Examen <strong id="examen"></strong></li>
+        <li>Respuestas correctas <strong id="aciertos"></strong></li>
+        <li>Porcentaje para aprobar <strong id="minimo"></strong></li>
+        <li>Tiempo usado <strong id="tiempoUsado"></strong></li>
+      </ul>
+      <button type="button" id="btnVolver" class="btn btn-primario">Volver a los exámenes</button>
+    </section>
+  </template>
 </body>
 </html>

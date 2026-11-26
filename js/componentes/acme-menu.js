@@ -3,93 +3,83 @@
 // Barra de navegación común. Los enlaces privados solo se
 // muestran si hay una sesión iniciada.
 // Uso: <acme-menu activo="usuarios"></acme-menu>
+// Como el menú está en TODAS las páginas, su HTML se escribe aquí
+// con shadowRoot.innerHTML (y no con un <template> en cada página).
 // =========================================================
-
-const plantillaMenu = document.createElement("template");
-plantillaMenu.innerHTML = `
-  <style>
-    :host {
-      display: block;
-    }
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px 20px;
-      padding: 14px 24px;
-      background: var(--color-menu);
-      border-bottom: 2px solid var(--color-primario);
-      color: #fff;
-      font-family: var(--fuente);
-    }
-    .marca {
-      font-weight: 700;
-      font-size: 1.2rem;
-      margin-right: auto;
-      opacity: 1;
-    }
-    .marca span {
-      color: var(--color-primario);
-    }
-    a {
-      color: #fff;
-      text-decoration: none;
-      opacity: 0.85;
-      padding: 4px 0;
-      border-bottom: 2px solid transparent;
-      transition: opacity 0.2s, border-color 0.2s;
-    }
-    a:hover,
-    a.activo {
-      opacity: 1;
-      border-color: var(--color-primario);
-    }
-    .marca:hover {
-      border-color: transparent;
-    }
-    /* El contenedor no ocupa espacio: sus hijos se acomodan como hijos del nav */
-    #enlaces {
-      display: contents;
-    }
-    .usuario {
-      font-size: 0.85rem;
-      opacity: 0.85;
-    }
-    button {
-      font: inherit;
-      background: var(--color-primario);
-      color: var(--color-texto-sobre-primario);
-      border: none;
-      border-radius: 8px;
-      padding: 6px 14px;
-      cursor: pointer;
-    }
-    a:focus-visible,
-    button:focus-visible {
-      outline: 3px solid var(--color-acento);
-      outline-offset: 2px;
-    }
-    @media (max-width: 600px) {
-      nav {
-        padding: 12px 16px;
-      }
-      .marca {
-        width: 100%;
-      }
-    }
-  </style>
-  <nav aria-label="Menú principal">
-    <a class="marca" id="marca">Acme<span>School</span></a>
-    <span id="enlaces"></span>
-  </nav>
-`;
 
 class AcmeMenu extends HTMLElement {
   constructor() {
     super();
     // Shadow DOM: los estilos del menú no chocan con los de la página
     this.attachShadow({ mode: "open" });
-    this.shadowRoot.appendChild(plantillaMenu.content.cloneNode(true));
+    this.shadowRoot.innerHTML = `
+      <style>
+        nav {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px 20px;
+          padding: 14px 24px;
+          background: var(--color-menu);
+          border-bottom: 2px solid var(--color-primario);
+          color: #fff;
+          font-family: var(--fuente);
+        }
+        .marca {
+          font-weight: 700;
+          font-size: 1.2rem;
+          margin-right: auto;
+        }
+        .marca span {
+          color: var(--color-primario);
+        }
+        a {
+          color: #fff;
+          text-decoration: none;
+          padding: 4px 0;
+          border-bottom: 2px solid transparent;
+          transition: border-color 0.2s;
+        }
+        a:hover,
+        a.activo {
+          border-color: var(--color-primario);
+        }
+        .marca:hover {
+          border-color: transparent;
+        }
+        .usuario {
+          font-size: 0.85rem;
+          color: var(--color-texto-suave);
+        }
+        button {
+          font: inherit;
+          background: var(--color-primario);
+          color: var(--color-texto-sobre-primario);
+          border: none;
+          border-radius: 8px;
+          padding: 6px 14px;
+          cursor: pointer;
+        }
+        a:focus-visible,
+        button:focus-visible {
+          outline: 3px solid var(--color-acento);
+          outline-offset: 2px;
+        }
+        @media (max-width: 600px) {
+          nav {
+            padding: 12px 16px;
+          }
+          .marca {
+            width: 100%;
+          }
+        }
+      </style>
+      <nav aria-label="Menú principal">
+        <a class="marca" id="marca">Acme<span>School</span></a>
+      </nav>
+    `;
+    this.nav = this.shadowRoot.querySelector("nav");
+    this.marca = this.shadowRoot.getElementById("marca");
     this.botonSalir = null;
   }
 
@@ -122,7 +112,13 @@ class AcmeMenu extends HTMLElement {
 
   render() {
     const sesion = obtenerSesion();
-    this.shadowRoot.getElementById("marca").href = `${RUTA_BASE}index.html`;
+    this.marca.href = `${RUTA_BASE}index.html`;
+
+    // Si el menú se vuelve a pintar, se quita el listener del botón anterior
+    if (this.botonSalir !== null) {
+      this.botonSalir.removeEventListener("click", this.salir);
+      this.botonSalir = null;
+    }
 
     const elementos = [];
     if (sesion === null) {
@@ -149,7 +145,8 @@ class AcmeMenu extends HTMLElement {
       );
     }
 
-    this.shadowRoot.getElementById("enlaces").replaceChildren(...elementos);
+    // La marca siempre va primero; después los enlaces según la sesión
+    this.nav.replaceChildren(this.marca, ...elementos);
   }
 }
 

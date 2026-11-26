@@ -26,5 +26,82 @@
     <formulario-usuario id="formularioUsuario"></formulario-usuario>
     <tabla-usuarios id="tablaUsuarios"></tabla-usuarios>
   </main>
+
+  <!-- Plantilla del Web Component <formulario-usuario> -->
+  <template id="tpl-formulario-usuario">
+    <link rel="stylesheet" href="../css/style.css">
+    <section class="panel">
+      <h2 id="tituloFormulario">Nuevo usuario</h2>
+      <form id="formulario" class="formulario" novalidate>
+        <div class="campo">
+          <label for="identificacion">Número de identificación</label>
+          <input type="text" id="identificacion" name="identificacion" inputmode="numeric" placeholder="1012345678">
+          <p id="error-identificacion" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre" name="nombre" placeholder="Ana María Pérez">
+          <p id="error-nombre" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="ana.perez@acme.edu.co">
+          <p id="error-email" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" name="telefono" inputmode="numeric" placeholder="3001234567">
+          <p id="error-telefono" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="cargo">Cargo</label>
+          <select id="cargo" name="cargo">
+            <option value="">Selecciona un cargo</option>
+            <option value="Administrativo">Administrativo</option>
+            <option value="Docente">Docente</option>
+          </select>
+          <p id="error-cargo" class="error"></p>
+        </div>
+        <div class="campo">
+          <label for="contrasena">Contraseña</label>
+          <input type="password" id="contrasena" name="contrasena" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          <p id="error-contrasena" class="error"></p>
+        </div>
+
+        <p id="mensaje" class="mensaje campo-completo" role="alert"></p>
+
+        <div class="acciones">
+          <button type="submit" id="btnGuardar" class="btn btn-primario">Crear usuario</button>
+          <button type="button" id="btnCancelar" class="btn btn-secundario oculto">Cancelar edición</button>
+        </div>
+      </form>
+    </section>
+  </template>
+
+  <!-- Plantilla del Web Component <tabla-usuarios> -->
+  <template id="tpl-tabla-usuarios">
+    <link rel="stylesheet" href="../css/style.css">
+    <section class="panel">
+      <div class="encabezado-pagina">
+        <h2>Usuarios registrados</h2>
+        <p id="resumen" class="subtitulo"></p>
+      </div>
+      <div class="contenedor-tabla">
+        <table>
+          <thead>
+            <tr>
+              <th>Identificación</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Cargo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo"></tbody>
+        </table>
+      </div>
+    </section>
+  </template>
 </body>
 </html>
