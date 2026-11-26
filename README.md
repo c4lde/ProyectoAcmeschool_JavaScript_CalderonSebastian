@@ -17,7 +17,7 @@ Está hecha con **HTML, CSS y JavaScript puro** (sin frameworks). Usa **Web Comp
 | Correo | Contraseña | Cargo |
 |---|---|---|
 | `admin@acme.edu.co` | `Admin123` | Administrativo |
-| `laura.gomez@acme.edu.co` | `Docente123` | Docente |
+| `kevin.jimenez@acme.edu.co` | `Docente123` | Docente |
 
 ### Datos de prueba incluidos
 
