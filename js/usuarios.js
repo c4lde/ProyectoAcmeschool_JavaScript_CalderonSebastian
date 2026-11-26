@@ -24,11 +24,11 @@ formularioUsuario.addEventListener("guardar-usuario", (e) => {
 
   // Los demás usuarios (sin contar al que se está editando)
   const otros = usuarios.filter((u) => u.identificacion !== identificacionEditando);
-  if (otros.some((u) => u.identificacion === usuario.identificacion)) {
+  if (otros.find((u) => u.identificacion === usuario.identificacion) !== undefined) {
     formularioUsuario.mostrarMensaje("Ya existe un usuario con esa identificación.", "fallo");
     return;
   }
-  if (otros.some((u) => u.email === usuario.email)) {
+  if (otros.find((u) => u.email === usuario.email) !== undefined) {
     formularioUsuario.mostrarMensaje("Ya existe un usuario con ese correo.", "fallo");
     return;
   }
@@ -40,6 +40,12 @@ formularioUsuario.addEventListener("guardar-usuario", (e) => {
     const indice = usuarios.findIndex((u) => u.identificacion === identificacionEditando);
     usuarios[indice] = usuario;
     console.log("Usuario actualizado:", usuario.identificacion);
+
+    // Si el usuario se editó a sí mismo, se actualizan la sesión y el nombre del menú
+    if (usuario.identificacion === obtenerSesion().identificacion) {
+      iniciarSesion(usuario);
+      document.querySelector("acme-menu").render();
+    }
   }
 
   guardarUsuarios(usuarios);
@@ -58,16 +64,17 @@ tablaUsuarios.addEventListener("editar-usuario", (e) => {
   actualizarTabla();
 });
 
-// R5: Eliminar, con confirmación. No se puede borrar el usuario con el que se inició sesión.
+// R5: Eliminar (la tabla ya pidió el doble clic de confirmación).
+//     No se puede borrar el usuario con el que se inició sesión.
 tablaUsuarios.addEventListener("eliminar-usuario", (e) => {
   const { identificacion } = e.detail;
   const usuario = usuarios.find((u) => u.identificacion === identificacion);
 
   if (identificacion === obtenerSesion().identificacion) {
     formularioUsuario.mostrarMensaje("No puedes eliminar tu propio usuario mientras tienes la sesión abierta.", "fallo");
+    actualizarTabla(); // devuelve el botón a "Eliminar"
     return;
   }
-  if (!confirm(`¿Eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.`)) return;
 
   usuarios = usuarios.filter((u) => u.identificacion !== identificacion);
   guardarUsuarios(usuarios);

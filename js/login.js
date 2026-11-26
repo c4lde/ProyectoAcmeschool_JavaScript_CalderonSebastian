@@ -6,7 +6,7 @@ const formularioLogin = document.getElementById("formularioLogin");
 
 // R1: Si ya hay una sesión iniciada, no tiene sentido ver el login: se va a la gestión de usuarios.
 if (obtenerSesion() !== null) {
-  location.replace("html/usuarios.html");
+  location.href = "html/usuarios.html";
 }
 
 // R2: Se cargan los datos iniciales. Se guarda la promesa para esperarla antes de validar

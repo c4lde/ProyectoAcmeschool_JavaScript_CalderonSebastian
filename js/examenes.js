@@ -22,7 +22,7 @@ function actualizarTabla() {
 formularioExamen.addEventListener("guardar-examen", (e) => {
   const { examen, codigoEditando } = e.detail;
 
-  if (codigoEditando === null && examenes.some((ex) => ex.codigo === examen.codigo)) {
+  if (codigoEditando === null && examenes.find((ex) => ex.codigo === examen.codigo) !== undefined) {
     formularioExamen.mostrarMensaje("Ya existe un examen con ese código.", "fallo");
     return;
   }
@@ -52,11 +52,10 @@ tablaExamenes.addEventListener("editar-examen", (e) => {
   actualizarTabla();
 });
 
-// R5: Eliminar, con confirmación.
+// R5: Eliminar (la tabla ya pidió el doble clic de confirmación).
 tablaExamenes.addEventListener("eliminar-examen", (e) => {
   const { codigo } = e.detail;
   const examen = examenes.find((ex) => ex.codigo === codigo);
-  if (!confirm(`¿Eliminar el examen "${examen.titulo}"? Esta acción no se puede deshacer.`)) return;
 
   examenes = examenes.filter((ex) => ex.codigo !== codigo);
   guardarExamenes(examenes);

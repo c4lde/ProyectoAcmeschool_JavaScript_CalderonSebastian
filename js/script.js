@@ -7,7 +7,8 @@
 // Claves de localStorage y sessionStorage
 const CLAVE_USUARIOS = "acme:usuarios";     // [{ identificacion, nombre, email, telefono, cargo, contrasena }]
 const CLAVE_EXAMENES = "acme:examenes";     // [{ codigo, titulo, tiempo, porcentaje, descripcion, preguntas }]
-const CLAVE_RESULTADOS = "acme:resultados"; // [{ codigoExamen, identificacion, nombre, respuestas, porcentaje, aprobado, fecha }]
+const CLAVE_RESULTADOS = "acme:resultados"; // [{ codigoExamen, identificacion, nombre, respuestas, aciertos, porcentaje, aprobado }]
+const CLAVE_EN_CURSO = "acme:examenEnCurso"; // { codigo, identificacion, nombre, segundosRestantes, respuestas }
 const CLAVE_SESION = "acme:sesion";         // { identificacion, nombre, email, cargo } (sessionStorage)
 
 // Las páginas de la carpeta html/ deben subir un nivel para llegar a la raíz del proyecto
@@ -57,8 +58,9 @@ async function cargarJSON(nombreArchivo) {
 // La primera vez que se abre la aplicación copia los datos de ejemplo a localStorage.
 // Después siempre se trabaja con lo que haya en localStorage.
 async function inicializarDatos() {
-  const faltanUsuarios = !Array.isArray(leerLocal(CLAVE_USUARIOS, null));
-  const faltanExamenes = !Array.isArray(leerLocal(CLAVE_EXAMENES, null));
+  // leerLocal devuelve null si la clave no existe o si su JSON está dañado
+  const faltanUsuarios = leerLocal(CLAVE_USUARIOS, null) === null;
+  const faltanExamenes = leerLocal(CLAVE_EXAMENES, null) === null;
   if (!faltanUsuarios && !faltanExamenes) return;
 
   try {
@@ -67,22 +69,17 @@ async function inicializarDatos() {
     if (faltanExamenes) guardarLocal(CLAVE_EXAMENES, datos.examenes);
     console.log("Datos iniciales cargados desde json/datos-iniciales.json");
   } catch (error) {
-    console.warn(`${error.message}. Se crea solo el administrador por defecto.`);
+    console.error(`${error.message}. Se crea solo el administrador por defecto.`);
     if (faltanUsuarios) guardarLocal(CLAVE_USUARIOS, [ADMIN_POR_DEFECTO]);
     if (faltanExamenes) guardarLocal(CLAVE_EXAMENES, []);
   }
 }
 
 // ---------- Usuarios, exámenes y resultados ----------
-// Si la clave no tiene un arreglo (no existe o está dañada) se devuelve un arreglo vacío.
-
-function leerLista(clave) {
-  const lista = leerLocal(clave, []);
-  return Array.isArray(lista) ? lista : [];
-}
+// Si la clave no existe o está dañada se devuelve un arreglo vacío.
 
 function obtenerUsuarios() {
-  return leerLista(CLAVE_USUARIOS);
+  return leerLocal(CLAVE_USUARIOS, []);
 }
 
 function guardarUsuarios(usuarios) {
@@ -90,7 +87,7 @@ function guardarUsuarios(usuarios) {
 }
 
 function obtenerExamenes() {
-  return leerLista(CLAVE_EXAMENES);
+  return leerLocal(CLAVE_EXAMENES, []);
 }
 
 function guardarExamenes(examenes) {
@@ -98,7 +95,7 @@ function guardarExamenes(examenes) {
 }
 
 function obtenerResultados() {
-  return leerLista(CLAVE_RESULTADOS);
+  return leerLocal(CLAVE_RESULTADOS, []);
 }
 
 function guardarResultados(resultados) {
@@ -132,10 +129,9 @@ function cerrarSesion() {
 }
 
 // Las páginas privadas llaman esta función al inicio: sin sesión, se vuelve al login.
-// replace() evita que con el botón "Atrás" se regrese a la página privada.
 function protegerPagina() {
   if (obtenerSesion() === null) {
-    location.replace(`${RUTA_BASE}index.html`);
+    location.href = `${RUTA_BASE}index.html`;
     return false;
   }
   return true;
@@ -160,7 +156,7 @@ function crearBoton(texto, clases, accion) {
   const boton = document.createElement("button");
   boton.type = "button";
   boton.className = clases;
-  boton.dataset.accion = accion;
+  boton.setAttribute("data-accion", accion);
   boton.textContent = texto;
   return boton;
 }
@@ -169,6 +165,29 @@ function crearBoton(texto, clases, accion) {
 function crearCelda(texto, etiqueta) {
   const celda = document.createElement("td");
   celda.textContent = texto;
-  celda.dataset.etiqueta = etiqueta;
+  celda.setAttribute("data-etiqueta", etiqueta);
   return celda;
+}
+
+// Deja vacíos todos los campos de un formulario (el select vuelve a su primera opción vacía)
+function limpiarCampos(raiz) {
+  raiz.querySelectorAll("input, select, textarea").forEach((campo) => {
+    campo.value = "";
+  });
+}
+
+// Convierte segundos al formato mm:ss con padStart (125 → "02:05")
+function formatoTiempo(totalSegundos) {
+  const minutos = Math.floor(totalSegundos / 60);
+  const segundos = totalSegundos % 60;
+  return `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+}
+
+// Doble clic para eliminar: el primer clic pide confirmar y el segundo confirma.
+// Devuelve true solo en el segundo clic. (No se usa confirm() porque bloquea la página.)
+function confirmarConDobleClic(boton) {
+  if (boton.textContent === "¿Seguro?") return true;
+  boton.textContent = "¿Seguro?";
+  boton.classList.add("confirmar");
+  return false;
 }
