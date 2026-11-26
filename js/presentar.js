@@ -15,6 +15,7 @@ const totalPreguntas = document.getElementById("totalPreguntas");
 const porcentajeAprobar = document.getElementById("porcentajeAprobar");
 const progresoRespuestas = document.getElementById("progresoRespuestas");
 const reloj = document.getElementById("reloj");
+const avisoRecuperado = document.getElementById("avisoRecuperado");
 const formExamen = document.getElementById("formExamen");
 const contenedorPreguntas = document.getElementById("contenedorPreguntas");
 const mensajeExamen = document.getElementById("mensajeExamen");
@@ -27,20 +28,15 @@ let preguntas = [];          // los <pregunta-examen> en pantalla
 let examenTerminado = false; // evita calificar dos veces (botón y reloj al mismo tiempo)
 let confirmarTerminar = false;
 
-// Si alguien entra primero a esta página, también se cargan los datos iniciales
-const datosListos = inicializarDatos();
-
 // Muestra una sola vista y oculta las demás
 function mostrarVista(vista) {
   [vistaLista, registroEstudiante, vistaExamen, resultadoExamen].forEach((elemento) => {
     elemento.classList.toggle("oculto", elemento !== vista);
   });
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // R1: Lista de exámenes disponibles con título, tiempo y porcentaje para aprobar.
-async function mostrarLista() {
-  await datosListos;
+function mostrarLista() {
   const examenes = obtenerExamenes();
 
   const tarjetas = examenes.map((examen) => {
@@ -68,18 +64,18 @@ listaExamenes.addEventListener("elegir-examen", (e) => {
   }
   registroEstudiante.preparar(examenActual);
   mostrarVista(registroEstudiante);
-  registroEstudiante.enfocar();
 });
 
 registroEstudiante.addEventListener("volver", mostrarLista);
 
 registroEstudiante.addEventListener("comenzar-examen", (e) => {
   estudiante = e.detail;
-  iniciarExamen();
+  iniciarExamen(null);
 });
 
 // R3: Encabezado (título, total de preguntas, % para aprobar), preguntas numeradas y reloj.
-function iniciarExamen() {
+//     enCurso es null para un examen nuevo, o el examen guardado si se recargó la página.
+function iniciarExamen(enCurso) {
   examenTerminado = false;
   confirmarTerminar = false;
 
@@ -99,15 +95,35 @@ function iniciarExamen() {
   });
   contenedorPreguntas.replaceChildren(...preguntas);
 
+  // Si el examen se recuperó, se vuelven a marcar las respuestas que ya tenía
+  if (enCurso !== null) {
+    enCurso.respuestas.forEach((respuesta, indice) => {
+      // Se revisa que la pregunta exista (el examen pudo editarse mientras tanto)
+      if (respuesta !== null && preguntas[indice] !== undefined) preguntas[indice].marcar(respuesta);
+    });
+    mostrarMensaje(avisoRecuperado, "Recuperamos tu examen: el tiempo y tus respuestas siguen donde iban.", "exito");
+  } else {
+    mostrarMensaje(avisoRecuperado, "", "");
+  }
+
   actualizarProgreso();
   mostrarMensaje(mensajeExamen, "", "");
   btnTerminar.disabled = false;
   btnTerminar.textContent = "Terminar";
   mostrarVista(vistaExamen);
 
-  // R4: El reloj empieza en los minutos del examen y baja hasta 0.
+  // R4: El reloj empieza en los minutos del examen (o en lo que quedaba) y baja hasta 0.
   reloj.setAttribute("minutos", examenActual.tiempo);
-  reloj.iniciar();
+  if (enCurso === null) {
+    reloj.iniciar();
+  } else if (enCurso.segundosRestantes > 0) {
+    reloj.iniciar(enCurso.segundosRestantes);
+  } else {
+    reloj.segundosRestantes = 0;
+    finalizarExamen("tiempo"); // el tiempo ya se había acabado
+    return;
+  }
+  guardarEnCurso();
   console.log(`Examen iniciado: ${examenActual.codigo} por ${estudiante.nombre}`);
 }
 
@@ -119,9 +135,27 @@ function actualizarProgreso() {
   progresoRespuestas.textContent = `${contarRespondidas()} de ${preguntas.length}`;
 }
 
+// Guarda el examen en curso en localStorage. Así, si se recarga la página,
+// el examen sigue con el tiempo que quedaba y no vuelve a empezar desde el inicio.
+function guardarEnCurso() {
+  guardarLocal(CLAVE_EN_CURSO, {
+    codigo: examenActual.codigo,
+    identificacion: estudiante.identificacion,
+    nombre: estudiante.nombre,
+    segundosRestantes: reloj.segundosRestantes,
+    respuestas: preguntas.map((pregunta) => pregunta.respuestaElegida())
+  });
+}
+
+// El reloj avisa cada segundo: se guarda el tiempo que queda
+reloj.addEventListener("tic", () => {
+  if (!examenTerminado) guardarEnCurso();
+});
+
 // Cada <pregunta-examen> avisa cuando se responde (el evento burbujea hasta el contenedor)
 contenedorPreguntas.addEventListener("respondida", () => {
   actualizarProgreso();
+  guardarEnCurso();
   // Si estaba pidiendo confirmación y responde otra pregunta, se reinicia la confirmación
   if (confirmarTerminar) {
     confirmarTerminar = false;
@@ -131,7 +165,7 @@ contenedorPreguntas.addEventListener("respondida", () => {
 });
 
 // R5: Botón Terminar por si acaba antes del tiempo. Si faltan preguntas pide confirmar
-//     con un segundo clic (no se usa confirm() porque congelaría el reloj).
+//     con un segundo clic (no se usa confirm() porque detendría la página y el reloj).
 formExamen.addEventListener("submit", (e) => {
   e.preventDefault();
   const sinResponder = preguntas.length - contarRespondidas();
@@ -158,6 +192,7 @@ function finalizarExamen(finalizadoPor) {
   reloj.detener();
   btnTerminar.disabled = true;
   preguntas.forEach((pregunta) => pregunta.bloquear());
+  localStorage.removeItem(CLAVE_EN_CURSO);
 
   const respuestas = preguntas.map((pregunta) => pregunta.respuestaElegida());
   const aciertos = examenActual.preguntas.filter((pregunta, indice) =>
@@ -171,14 +206,13 @@ function finalizarExamen(finalizadoPor) {
     tituloExamen: examenActual.titulo,
     identificacion: estudiante.identificacion,
     nombre: estudiante.nombre,
-    respuestas,                       // índice elegido en cada pregunta (null = sin responder)
+    respuestas,                       // posición elegida en cada pregunta (null = sin responder)
     aciertos,
     total,
     porcentaje,
     aprobado: (aciertos / total) * 100 >= examenActual.porcentaje,
     segundosUsados: examenActual.tiempo * 60 - reloj.segundosRestantes,
-    finalizadoPor,                    // "estudiante" o "tiempo"
-    fecha: new Date().toISOString()
+    finalizadoPor                     // "estudiante" o "tiempo"
   };
 
   guardarResultados([...obtenerResultados(), resultado]);
@@ -190,4 +224,23 @@ function finalizarExamen(finalizadoPor) {
 
 resultadoExamen.addEventListener("volver-lista", mostrarLista);
 
-mostrarLista();
+// Al abrir la página: si había un examen en curso (por ejemplo, se recargó la página)
+// se recupera; si no, se muestra la lista. Si alguien entra primero a esta página,
+// también se cargan los datos iniciales.
+async function iniciarPagina() {
+  await inicializarDatos();
+  const enCurso = leerLocal(CLAVE_EN_CURSO, null);
+
+  if (enCurso !== null) {
+    examenActual = obtenerExamenes().find((examen) => examen.codigo === enCurso.codigo);
+    if (examenActual !== undefined) {
+      estudiante = { identificacion: enCurso.identificacion, nombre: enCurso.nombre };
+      iniciarExamen(enCurso);
+      return;
+    }
+    localStorage.removeItem(CLAVE_EN_CURSO); // el examen ya no existe
+  }
+  mostrarLista();
+}
+
+iniciarPagina();
